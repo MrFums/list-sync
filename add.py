@@ -1498,18 +1498,24 @@ def main():
     display_ascii_art()
 
     # Try to load configuration from environment first
-    overseerr_url, api_key, requester_user_id, sync_interval = load_env_config()
-    
+    overseerr_url = os.getenv('OVERSERR_URL')
+    api_key = os.getenv('API_KEY')
+    requester_user_id = os.getenv('REQUESTER_USER_ID')
+    sync_interval = os.getenv('SYNC_INTERVAL')
+
+    # Convert sync_interval to an integer, if set
+    sync_interval = int(sync_interval) if sync_interval else 0
+
     # If environment config exists and is valid
     if overseerr_url and api_key and requester_user_id:
         print(color_gradient("👋  Welcome to the List to Overseerr Sync Tool!", "#00aaff", "#00ffaa") + "\n")
         print(color_gradient("📝 Using configuration from environment variables", "#00aaff", "#00ffaa"))
-        
+
         # Load lists from environment if available
         lists_loaded = load_env_lists()
         if lists_loaded:
             print(color_gradient("📋 Lists loaded from environment variables", "#00aaff", "#00ffaa"))
-        
+
         # If sync interval is set, go straight to automated mode
         if sync_interval > 0:
             print(color_gradient(f"\n⚙️  Starting automated sync mode (interval: {sync_interval} hours)...", "#00aaff", "#00ffaa"))
@@ -1528,9 +1534,15 @@ def main():
         overseerr_url, api_key, requester_user_id = load_config()
         if not all([overseerr_url, api_key, requester_user_id]):
             print(color_gradient("\n🔧 First-time setup required", "#ffaa00", "#ff5500"))
-            overseerr_url = custom_input(color_gradient("\n🌐 Enter your Overseerr URL: ", "#ffaa00", "#ff5500"))
-            api_key = custom_input(color_gradient("🔑 Enter your API key: ", "#ffaa00", "#ff5500"))
-            requester_user_id = set_requester_user(overseerr_url, api_key)
+
+            # Prompt for user input if environment variables are not set
+            if not overseerr_url:
+                overseerr_url = custom_input(color_gradient("\n🌐 Enter your Overseerr URL: ", "#ffaa00", "#ff5500"))
+            if not api_key:
+                api_key = custom_input(color_gradient("🔑 Enter your API key: ", "#ffaa00", "#ff5500"))
+            if not requester_user_id:
+                requester_user_id = set_requester_user(overseerr_url, api_key)
+
             save_config(overseerr_url, api_key, requester_user_id)
         
         while True:
@@ -1569,7 +1581,6 @@ def main():
                 print(color_gradient(f"\n❌ Error: {str(e)}", "#ff0000", "#aa0000"))
                 logging.error(f"Error in menu option {choice}: {str(e)}")
                 continue
-
 if __name__ == "__main__":
     main()
 
